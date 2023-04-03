@@ -1,12 +1,15 @@
 import pandas as pd
 import numpy as np
 import calendar
+from typing import Union,Tuple
+from sber_housing.constants import TARGET_COL
 
 
-def run(df: pd.DataFrame) -> pd.DataFrame:
+def run(df: pd.DataFrame, return_y: bool = False) -> Union[Tuple[pd.DataFrame, pd.Series], pd.DataFrame]:
     """
     creates new features for raw data input
     :param df: input raw data
+    :param return_y: if True return features and target if the latter exists 
     :return: processed features ready for model training
 
     """
@@ -97,4 +100,14 @@ def run(df: pd.DataFrame) -> pd.DataFrame:
 
     df.loc[df['preschool_quota']==0,'preschool_quota']= np.nan
 
-    return df
+    df = df.drop(columns = 'timestamp')
+    try:
+        y=df[TARGET_COL]
+    except KeyError:
+        y=None
+    X = df.drop(columns=TARGET_COL,errors='ignore')
+
+    if return_y:
+        return X, y
+    else:
+        return X

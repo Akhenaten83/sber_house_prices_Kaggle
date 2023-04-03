@@ -1,0 +1,1 @@
+TARGET_COL = 'price_doc'
