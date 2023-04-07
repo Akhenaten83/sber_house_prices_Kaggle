@@ -7,6 +7,8 @@ from typing import Union,Optional
 from datetime import datetime
 from sber_housing.constants import DATETIME_FORMAT,TARGET_COL
 import argparse
+import json
+import joblib
 
 def main(
     train_data: pd.DataFrame,
@@ -19,8 +21,28 @@ def main(
     
     """
     current_time = datetime.now().strftime(DATETIME_FORMAT)
-    train_Xy = build_features(train_data)
-    train_Xy.to_csv(Path(features_out,f'{current_time}_train.csv'))
+    train_X,train_y = build_features(train_data, return_y=True)
+    pd.concat((train_X,train_y),axis=1).to_csv(Path(features_out,f'{current_time}_train.csv'))
+    
+    if model_out is not None:
+
+        metrics = model_eval(train_X,train_y)
+        with open (Path(model_out,f'{current_time}_metrics.json'),'w') as  file:
+            json.dump(metrics,file)
+
+        model = train(train_X,train_y)
+        with open(Path(model_out,f'{current_time}_model.joblib'),'wb') as file:
+            joblib.dump(model,file)
+
+    if test_data is not None:
+        test_X = build_features(test_data)
+        test_X['product_type']=test_X['product_type'].fillna('Investment')
+        test_X.to_csv(Path(features_out,f'{current_time}_test.csv'))
+        
+        if submission_out is not None:
+            y_pred = pd.Series(model.predict(test_X),index=test_X.index,name = 'price_doc')
+            y_pred = y_pred.to_frame()
+            y_pred.to_csv(Path(submission_out,f'{current_time}.csv'))
 
 
 if __name__ == '__main__':
