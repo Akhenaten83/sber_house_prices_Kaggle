@@ -15,6 +15,7 @@ def main(
     features_out: Union[str,Path],
     test_data: Optional[Union[str,Path]] = None,
     model_out: Optional[Union[str,Path]] = None,
+    optimize_hp: bool = False,
     submission_out:Optional[Union[str,Path]] = None
     ) -> None:
     """
@@ -30,7 +31,7 @@ def main(
         with open (Path(model_out,f'{current_time}_metrics.json'),'w') as  file:
             json.dump(metrics,file)
 
-        model = train(train_X,train_y)
+        model = train(train_X,train_y,optimize_hp=optimize_hp)
         with open(Path(model_out,f'{current_time}_model.joblib'),'wb') as file:
             joblib.dump(model,file)
 
@@ -51,6 +52,7 @@ if __name__ == '__main__':
     parser.add_argument('-f','--features_out', required=True)
     parser.add_argument('--test_data_path', required=False, default=None)
     parser.add_argument('-m','--model_out',required=False, default=None)
+    parser.add_argument('-o','--optimize_hp',action ='store_true')
     parser.add_argument('-s','--submission_out',required=False,default=None)
 
     args = parser.parse_args()
@@ -66,5 +68,6 @@ if __name__ == '__main__':
         features_out=args.features_out,
         test_data=test_data,
         model_out=args.model_out,
-        submission_out=args.submission_out
+        submission_out=args.submission_out,
+        optimize_hp=args.optimize_hp
     )
